@@ -7,3 +7,4 @@ python-dotenv==1.0.1
 # Selenium for JavaScript-heavy sites (optional - only needed for Adidas, Dick's, etc.)
 selenium==4.16.0
 undetected-chromedriver==3.5.5
+setuptools>=65.5.0  # Required for undetected-chromedriver on Python 3.12+
