@@ -338,8 +338,22 @@ class DicksScraper(BaseScraper):
                 self.logger.error(f"Error parsing Dick's product: {e}", exc_info=True)
                 continue
 
-        self.logger.info(f"Successfully parsed {len(shoes)} shoes from Dick's")
-        return shoes
+        # Deduplicate by product_id (handles color variants and nested elements)
+        seen_ids = set()
+        unique_shoes = []
+
+        for shoe in shoes:
+            # Remove color variant from product_id for deduplication
+            base_id = shoe['product_id'].split('?')[0]
+
+            if base_id not in seen_ids:
+                seen_ids.add(base_id)
+                unique_shoes.append(shoe)
+            else:
+                self.logger.debug(f"Skipping duplicate: {shoe['name']} ({shoe['product_id']})")
+
+        self.logger.info(f"Successfully parsed {len(shoes)} shoes from Dick's ({len(shoes) - len(unique_shoes)} duplicates removed)")
+        return unique_shoes
 
     def parse_product_page(self, soup: BeautifulSoup, url: str) -> Optional[Dict]:
         """Not used - we parse from listing page."""
