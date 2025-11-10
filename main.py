@@ -112,6 +112,35 @@ def show_sales(tracker: ShoeTracker, limit: int):
     print("=" * 80 + "\n")
 
 
+def show_manual_review(tracker: ShoeTracker, limit: int):
+    """Display items requiring manual review."""
+    items = tracker.get_manual_review_items(limit)
+
+    if not items:
+        print("No items requiring manual review. Great!")
+        return
+
+    print("\n" + "=" * 80)
+    print(f"🔍 ITEMS REQUIRING MANUAL REVIEW (showing {len(items)} items)")
+    print("These items may be on sale but prices are hidden - check them manually!")
+    print("=" * 80 + "\n")
+
+    for i, item in enumerate(items, 1):
+        print(f"{i}. {item['name']}")
+        if item.get('brand'):
+            print(f"   Brand: {item['brand']}")
+        print(f"   Website: {item['website']}")
+        print(f"   💡 Price Hidden - Check cart for actual price")
+        print(f"   URL: {item['url']}")
+        print(f"   Last checked: {item['last_checked']}")
+        print()
+
+    print("=" * 80)
+    print(f"Total items needing review: {len(items)}")
+    print("Tip: Visit each URL and add to cart to see the actual price")
+    print("=" * 80 + "\n")
+
+
 def main():
     """Main entry point for the application."""
     parser = argparse.ArgumentParser(
@@ -120,9 +149,9 @@ def main():
 
     parser.add_argument(
         '--mode',
-        choices=['once', 'schedule', 'show'],
+        choices=['once', 'schedule', 'show', 'review'],
         default='schedule',
-        help='Run mode: once (single check), schedule (continuous), show (display current sales)'
+        help='Run mode: once (single check), schedule (continuous), show (display current sales), review (show items needing manual review)'
     )
 
     parser.add_argument(
@@ -174,6 +203,10 @@ def main():
         elif args.mode == 'show':
             # Show current sales
             show_sales(tracker, args.limit)
+
+        elif args.mode == 'review':
+            # Show items requiring manual review
+            show_manual_review(tracker, args.limit)
 
     except Exception as e:
         logger.error(f"Fatal error: {e}", exc_info=True)

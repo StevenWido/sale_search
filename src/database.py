@@ -34,6 +34,8 @@ class Database:
                 original_price REAL,
                 discount_percentage REAL,
                 is_on_sale BOOLEAN DEFAULT 0,
+                price_hidden BOOLEAN DEFAULT 0,
+                requires_manual_review BOOLEAN DEFAULT 0,
                 last_checked TIMESTAMP,
                 first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 image_url TEXT
@@ -97,6 +99,8 @@ class Database:
                     original_price = ?,
                     discount_percentage = ?,
                     is_on_sale = ?,
+                    price_hidden = ?,
+                    requires_manual_review = ?,
                     last_checked = ?,
                     image_url = ?
                 WHERE product_id = ?
@@ -108,6 +112,8 @@ class Database:
                 shoe_data.get('original_price'),
                 shoe_data.get('discount_percentage'),
                 shoe_data.get('is_on_sale', False),
+                shoe_data.get('price_hidden', False),
+                shoe_data.get('requires_manual_review', False),
                 datetime.now(),
                 shoe_data.get('image_url'),
                 shoe_data['product_id']
@@ -120,8 +126,9 @@ class Database:
                 INSERT INTO shoes (
                     product_id, name, brand, website, url, current_price,
                     original_price, discount_percentage, is_on_sale,
+                    price_hidden, requires_manual_review,
                     last_checked, image_url
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 shoe_data['product_id'],
                 shoe_data['name'],
@@ -132,6 +139,8 @@ class Database:
                 shoe_data.get('original_price'),
                 shoe_data.get('discount_percentage'),
                 shoe_data.get('is_on_sale', False),
+                shoe_data.get('price_hidden', False),
+                shoe_data.get('requires_manual_review', False),
                 datetime.now(),
                 shoe_data.get('image_url')
             ))
@@ -203,6 +212,34 @@ class Database:
             SET alert_sent = 1, alert_sent_at = ?
             WHERE id = ?
         """, (datetime.now(), alert_id))
+        self.conn.commit()
+
+    def get_manual_review_items(self, limit: Optional[int] = None) -> List[Dict]:
+        """Get items that require manual review (hidden prices)."""
+        cursor = self.conn.cursor()
+
+        query = """
+            SELECT * FROM shoes
+            WHERE requires_manual_review = 1
+            ORDER BY last_checked DESC
+        """
+
+        if limit:
+            query += f" LIMIT {limit}"
+
+        cursor.execute(query)
+        rows = cursor.fetchall()
+
+        return [dict(row) for row in rows]
+
+    def mark_manual_review_done(self, product_id: str):
+        """Mark a manual review item as reviewed."""
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            UPDATE shoes
+            SET requires_manual_review = 0
+            WHERE product_id = ?
+        """, (product_id,))
         self.conn.commit()
 
     def get_price_history(self, product_id: str) -> List[Dict]:

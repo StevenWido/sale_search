@@ -62,11 +62,17 @@ class ShoeTracker:
             for alert in unsent_alerts[:sent_count]:
                 self.db.mark_alert_sent(alert['id'])
 
+        # Send notifications for items requiring manual review
+        manual_review_items = self.db.get_manual_review_items()
+        if manual_review_items:
+            self.notifier.send_manual_review_alerts(manual_review_items)
+
         # Get and display stats
         stats = self.db.get_stats()
-        self.notifier.send_summary(stats, len(all_new_sales))
+        self.notifier.send_summary(stats, len(all_new_sales), len(manual_review_items))
 
-        self.logger.info(f"Check complete. Found {len(all_new_sales)} new sales")
+        self.logger.info(f"Check complete. Found {len(all_new_sales)} new sales, "
+                        f"{len(manual_review_items)} items need manual review")
 
         return {
             'total_shoes_checked': sum(len(s.scrape()) for s in self.scrapers),
@@ -77,6 +83,10 @@ class ShoeTracker:
     def get_current_sales(self, limit: int = 20) -> List[Dict]:
         """Get currently active sales."""
         return self.db.get_active_sales(limit)
+
+    def get_manual_review_items(self, limit: int = 20) -> List[Dict]:
+        """Get items requiring manual review."""
+        return self.db.get_manual_review_items(limit)
 
     def get_stats(self) -> Dict:
         """Get current statistics."""

@@ -134,6 +134,39 @@ class BaseScraper(ABC):
         return round(discount, 2)
 
     @staticmethod
+    def is_price_hidden(container) -> bool:
+        """
+        Detect if price is hidden (e.g., "See Price in Cart").
+
+        Args:
+            container: BeautifulSoup element (product container)
+
+        Returns:
+            True if price appears to be hidden
+        """
+        # Common patterns for hidden prices
+        hidden_price_patterns = [
+            'see price in cart',
+            'price in cart',
+            'add to cart to see price',
+            'add to bag to see price',
+            'login to see price',
+            'sign in to see price',
+            'view price in cart',
+            'price available in cart',
+            'cart price',
+            'special price in cart',
+            'member price',
+            'members only',
+        ]
+
+        # Get all text from the container
+        text = container.get_text(separator=' ').lower()
+
+        # Check for any hidden price patterns
+        return any(pattern in text for pattern in hidden_price_patterns)
+
+    @staticmethod
     def generate_product_id(website: str, product_identifier: str) -> str:
         """Generate a unique product ID."""
         return f"{website}_{product_identifier}"
