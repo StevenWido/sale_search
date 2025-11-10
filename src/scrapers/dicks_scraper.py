@@ -101,10 +101,10 @@ class DicksScraper(BaseScraper):
             page_source = self.driver.page_source
             soup = BeautifulSoup(page_source, 'lxml')
 
-            # Save HTML for debugging (optional - comment out in production)
-            # with open('dicks_page_debug.html', 'w', encoding='utf-8') as f:
-            #     f.write(page_source)
-            # self.logger.info("Saved page HTML to dicks_page_debug.html for inspection")
+            # Save HTML for debugging
+            with open('dicks_page_debug.html', 'w', encoding='utf-8') as f:
+                f.write(page_source)
+            self.logger.info("Saved page HTML to dicks_page_debug.html for inspection")
 
             return soup
 
@@ -212,6 +212,10 @@ class DicksScraper(BaseScraper):
                     continue
 
                 # Check for hidden prices FIRST
+                # Debug: Log the container text to see what we're checking
+                container_text = container.get_text(separator=' ', strip=True)
+                self.logger.debug(f"Container text for {name}: {container_text[:200]}")
+
                 if self.is_price_hidden(container):
                     self.logger.info(f"Price hidden for: {name}")
 
@@ -289,8 +293,11 @@ class DicksScraper(BaseScraper):
                 # If we still don't have a price, skip or flag for review
                 if not current_price:
                     self.logger.warning(f"No price found for {name}, may need manual review")
+                    self.logger.debug(f"  Container HTML preview: {str(container)[:500]}")
                     # Could flag for manual review here too
                     continue
+                else:
+                    self.logger.debug(f"Found price for {name}: ${current_price}")
 
                 if not original_price:
                     original_price = current_price
