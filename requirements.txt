@@ -3,3 +3,7 @@ beautifulsoup4==4.12.3
 lxml==5.1.0
 schedule==1.2.1
 python-dotenv==1.0.1
+
+# Selenium for JavaScript-heavy sites (optional - only needed for Adidas, Dick's, etc.)
+selenium==4.16.0
+undetected-chromedriver==3.5.5
