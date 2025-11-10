@@ -26,6 +26,10 @@ def setup_logging(verbose: bool = False):
     console_handler.setLevel(log_level)
     console_handler.setFormatter(logging.Formatter(log_format))
 
+    # Create logs directory if it doesn't exist
+    import os
+    os.makedirs('logs', exist_ok=True)
+
     # File handler
     file_handler = logging.FileHandler('logs/shoe_tracker.log')
     file_handler.setLevel(logging.DEBUG)
