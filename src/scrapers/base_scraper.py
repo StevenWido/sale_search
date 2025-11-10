@@ -163,8 +163,16 @@ class BaseScraper(ABC):
         # Get all text from the container
         text = container.get_text(separator=' ').lower()
 
-        # Check for any hidden price patterns
-        return any(pattern in text for pattern in hidden_price_patterns)
+        # Check for any hidden price patterns - log which one matches
+        for pattern in hidden_price_patterns:
+            if pattern in text:
+                # Log which pattern matched for debugging
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.debug(f"  → Matched hidden price pattern: '{pattern}'")
+                return True
+
+        return False
 
     @staticmethod
     def generate_product_id(website: str, product_identifier: str) -> str:
