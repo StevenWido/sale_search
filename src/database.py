@@ -145,15 +145,16 @@ class Database:
                 shoe_data.get('image_url')
             ))
 
-        # Add to price history
-        cursor.execute("""
-            INSERT INTO price_history (product_id, price, was_on_sale)
-            VALUES (?, ?, ?)
-        """, (
-            shoe_data['product_id'],
-            shoe_data.get('current_price'),
-            shoe_data.get('is_on_sale', False)
-        ))
+        # Add to price history (only if price is available)
+        if shoe_data.get('current_price') is not None:
+            cursor.execute("""
+                INSERT INTO price_history (product_id, price, was_on_sale)
+                VALUES (?, ?, ?)
+            """, (
+                shoe_data['product_id'],
+                shoe_data.get('current_price'),
+                shoe_data.get('is_on_sale', False)
+            ))
 
         # Create sale alert if it's a new sale
         if is_new_sale:
